@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{SUBJECT}}</title>
+</head>
+<!--
+  Estrutura table-based deliberada — Outlook (especialmente versoes corporate)
+  nao renderiza flexbox/grid corretamente. Tabelas garantem compat universal.
+  Cores diretas (sem variaveis CSS — clientes de e-mail ignoram :root).
+-->
+<body style="margin:0;padding:0;background:#f4f7f5;font-family:'Segoe UI',Arial,sans-serif;color:#1f2d3d;">
+  <!-- Pre-header invisivel (aparece na lista de e-mails do cliente) -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">
+    {{PREHEADER}}
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0"
+         width="100%" style="background:#f4f7f5;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"
+               width="600" style="max-width:600px;background:#ffffff;border-radius:12px;
+                                  overflow:hidden;box-shadow:0 4px 16px rgba(11,35,25,0.10);">
+
+          <!-- Cabecalho com gradient verde Fertimaxi -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#0F4C8C 0%,#2E8B3D 100%);
+                       padding:32px 28px;text-align:center;">
+              <img src="{{LOGO_URL}}" alt="Fertimaxi" height="48"
+                   style="height:48px;border:0;display:inline-block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2))">
+              <h1 style="margin:14px 0 4px;color:#fff;font-size:20px;font-weight:700;letter-spacing:.3px">
+                {{HEADER_TITLE}}
+              </h1>
+              <div style="color:rgba(255,255,255,0.85);font-size:13px">{{HEADER_SUBTITLE}}</div>
+            </td>
+          </tr>
+
+          <!-- Conteudo principal -->
+          <tr>
+            <td style="padding:32px 36px;font-size:14px;line-height:1.6;">
+              {{BODY}}
+            </td>
+          </tr>
+
+          <!-- CTA opcional (alinhado central) -->
+          {{CTA_BLOCK}}
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f4f7f5;padding:20px 28px;text-align:center;
+                       font-size:11px;color:#6c757d;border-top:1px solid #e3e7ee;">
+              <div style="margin-bottom:6px">
+                <strong style="color:#0F4C8C">{{APP_NAME}}</strong> · {{FOOTER_LINE}}
+              </div>
+              <div style="opacity:.7">
+                Mensagem automatica de <strong>{{APP_NAME}}</strong>.
+                Voce esta recebendo porque seu e-mail esta cadastrado no sistema.
+              </div>
+              <div style="opacity:.55;margin-top:6px">
+                {{GENERATED_AT}} (America/Sao_Paulo)
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

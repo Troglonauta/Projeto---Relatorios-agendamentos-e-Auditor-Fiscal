@@ -1,0 +1,88 @@
+# ===== Segredos =====
+.env
+.env.local
+.env.prod
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.ppk
+# Chaves SSH (deploy)
+id_deploy*
+id_rsa*
+id_ed25519*
+pass.txt
+
+# ===== Deploy (chave SSH + scripts com credenciais do servidor) =====
+.deploy/
+
+# ===== Ambiente local / sessão =====
+.claude/
+.psmodules/
+Untitled-*.md
+data/old_app.db
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===== Virtualenv =====
+venv/
+.venv/
+env/
+ENV/
+
+# ===== Banco de dados local =====
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# ===== Branding white-label do cliente (Fase 3) =====
+data/branding/*
+!data/branding/.gitkeep
+data/secrets/*
+
+# ===== Backups locais (snapshots de rollback, Fase 4) =====
+backup/
+
+# ===== Relatórios gerados =====
+reports_output/*
+!reports_output/.gitkeep
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Testes / cobertura =====
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/

@@ -1,0 +1,1214 @@
+/* === Fertimaxi · Protheus Reports — Tema corporativo === */
+
+:root {
+  /* === Cor primaria — sobrescrita em runtime via /api/settings/public === */
+  /* Default Fertimaxi verde; o layout.js injeta a cor real do cliente. */
+  --fx-primary:        #2E8B3D;
+  --fx-primary-dark:   #226d2e;
+  --fx-primary-soft:   #e7f3e9;
+
+  /* Cor "menu" — usada pelo sidebar (derivada por color-mix com fallback) */
+  --fx-menu:           color-mix(in srgb, var(--fx-primary) 92%, black);
+  --fx-menu-dark:      color-mix(in srgb, var(--fx-primary) 70%, black);
+
+  /* Aliases — compat com codigo legado que referencia --fx-green/--fx-blue.
+     Quando o cliente troca a primary, esses aliases tambem mudam. */
+  --fx-green:        var(--fx-primary);
+  --fx-green-dark:   var(--fx-primary-dark);
+  --fx-green-soft:   var(--fx-primary-soft);
+  --fx-blue:         var(--fx-menu);
+  --fx-blue-dark:    var(--fx-menu-dark);
+  --fx-blue-soft:    var(--fx-primary-soft);
+
+  --fx-red:          #C0392B;
+  --fx-red-dark:     #8e2920;
+
+  --bg:           #f4f7f5;
+  --card:         #ffffff;
+  --text:         #1f2d3d;
+  --muted:        #6c757d;
+  --border:       #dde3e8;
+
+  --success: #198754;
+  --danger:  var(--fx-red);
+  --warning: #d4a017;
+
+  --brand-primary:      var(--fx-primary);
+  --brand-primary-dark: var(--fx-primary-dark);
+  --brand-bg:           var(--bg);
+  --brand-card:         var(--card);
+  --brand-text:         var(--text);
+  --brand-muted:        var(--muted);
+  --brand-border:       var(--border);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ===================== LOGIN ===================== */
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  background: linear-gradient(135deg, #e7f3e9 0%, #d6e6db 60%, #c9dcd0 100%);
+}
+
+/* Plano de fundo abstrato (background.png) — leve opacidade para não atrapalhar a leitura */
+.login-shell::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(135deg, rgba(46,139,61,0.55) 0%, rgba(15,76,140,0.55) 100%),
+    url("/static/img/background.png") center/cover no-repeat;
+  opacity: 0.85;
+  z-index: 0;
+}
+.login-shell > * { position: relative; z-index: 1; }
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 22px 60px rgba(11, 35, 25, 0.30);
+  backdrop-filter: blur(2px);
+}
+
+.login-header {
+  background: linear-gradient(135deg, var(--fx-blue) 0%, var(--fx-green) 100%);
+  color: #fff;
+  padding: 28px 28px 22px;
+  text-align: center;
+}
+
+.login-header img.logo {
+  height: 56px;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+}
+
+.login-header h1 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.login-header small {
+  display: block;
+  margin-top: 4px;
+  opacity: 0.9;
+  font-size: 12px;
+}
+
+.login-body { padding: 28px; }
+.login-body label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.login-body .form-control {
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+.login-body .form-control:focus {
+  border-color: var(--fx-green);
+  box-shadow: 0 0 0 3px rgba(46,139,61,0.15);
+}
+
+.login-body .btn-primary {
+  background: var(--fx-green);
+  border-color: var(--fx-green);
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 8px;
+}
+.login-body .btn-primary:hover,
+.login-body .btn-primary:focus {
+  background: var(--fx-green-dark);
+  border-color: var(--fx-green-dark);
+}
+
+.login-footer { text-align: center; padding: 0 28px 24px; font-size: 13px; }
+.login-footer a { color: var(--fx-blue); text-decoration: none; }
+.login-footer a:hover { text-decoration: underline; }
+
+/* ===================== APP SHELL ===================== */
+.app-shell { display: flex; min-height: 100vh; }
+
+/* Sidebar FIXA — Sprint 5 UX polish.
+   Antes a sidebar era um `flex: 0 0 240px` dentro do `.app-shell` e crescia
+   junto com o `.main` (tabelas grandes geravam grandes faixas verdes vazias
+   abaixo do menu). Agora ela e' `position: fixed` na esquerda, sempre 100vh,
+   e o `.main` ganha `margin-left: 240px` para compensar. */
+.sidebar {
+  width: 240px;
+  background: linear-gradient(180deg, var(--fx-blue-dark) 0%, var(--fx-blue) 100%);
+  color: #d8e6f5;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+
+  /* Sprint 5 UX polish: fixa, ocupa toda altura, rola interno se preciso */
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1020;        /* abaixo dos modais Bootstrap (1050+) */
+}
+
+.sidebar .brand {
+  padding: 18px 20px;
+  font-weight: 700;
+  font-size: 17px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 76px;
+}
+.sidebar .brand img {
+  max-height: 44px;
+  max-width: 100%;
+}
+.sidebar .brand-fallback {
+  letter-spacing: 0.5px;
+}
+
+.sidebar .nav { padding: 8px 0; }
+.sidebar .nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  color: #cfdbeb;
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  font-size: 14px;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.sidebar .nav a:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.sidebar .nav a.active {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-left-color: var(--fx-green);
+}
+
+.sidebar .footer-info {
+  margin-top: auto;
+  padding: 14px 22px;
+  font-size: 11px;
+  color: #91aac8;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0, 0, 0, 0.12);
+}
+.sidebar .footer-info > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+}
+.sidebar .footer-info .vlabel {
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}
+.sidebar .footer-info strong,
+.sidebar .footer-info .version-build span:last-child,
+.sidebar .footer-info .version-tz span:last-child {
+  color: #fff;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* Relogio do topbar */
+.topbar-clock {
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--fx-primary-soft);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* Compensa a sidebar agora fixa em 240px na esquerda */
+  margin-left: 240px;
+  /* Hotfix2 v2.0 — usa --bg explicitamente. Antes herdava do body, mas
+     algumas paginas filhas com `height:100vh` truncavam o herdar. */
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  /* Em telas pequenas, sidebar vira oculta (mobile-first ainda nao implementado) */
+  .main { margin-left: 0; }
+}
+
+.topbar {
+  background: #fff;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.topbar .page-title { font-weight: 600; color: var(--fx-blue); }
+.topbar .user-pill {
+  background: var(--fx-green-soft);
+  color: var(--fx-green-dark);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  border: 1px solid rgba(46,139,61,0.15);
+}
+
+.content { padding: 24px; flex: 1; overflow: auto; }
+
+/* ===================== KPIs ===================== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--fx-green);
+}
+.kpi-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+.kpi-card .value { font-size: 26px; font-weight: 700; margin-top: 6px; color: var(--fx-blue); }
+
+/* ===================== Cards / Tabelas ===================== */
+.table-card {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.table-card .table-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.table-card table { margin-bottom: 0; }
+.table-card thead th {
+  background: var(--fx-blue-soft);
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--fx-blue-dark);
+  font-weight: 700;
+}
+
+/* Grid de Consultas — cabecalho verde Fertimaxi (identidade da marca). */
+#grid thead th {
+  background: var(--fx-primary, #2E8B3D) !important;
+  color: #fff !important;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 12px;
+}
+/* Setas de ordenacao do DataTables visiveis sobre o verde */
+#grid thead th.dt-orderable-asc span.dt-column-order::before,
+#grid thead th.dt-orderable-desc span.dt-column-order::after,
+#grid thead th .dt-column-order::before,
+#grid thead th .dt-column-order::after { opacity: .9; }
+
+/* Auditor Fiscal — cabecalho verde Fertimaxi: tabela principal + tabelas do
+   relatorio/detalhe (Cabecalho/Itens) dentro dos modais. */
+#tabela_anomalias thead th,
+.fiscal-report-table thead th {
+  background: var(--fx-primary, #2E8B3D) !important;
+  color: #fff !important;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 12px;
+}
+#tabela_anomalias thead th.dt-orderable-asc span.dt-column-order::before,
+#tabela_anomalias thead th.dt-orderable-desc span.dt-column-order::after,
+#tabela_anomalias thead th .dt-column-order::before,
+#tabela_anomalias thead th .dt-column-order::after { opacity: .9; }
+
+/* ===================== Bootstrap overrides ===================== */
+.btn-primary {
+  background-color: var(--fx-green);
+  border-color: var(--fx-green);
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: var(--fx-green-dark) !important;
+  border-color: var(--fx-green-dark) !important;
+}
+.btn-outline-primary {
+  color: var(--fx-green);
+  border-color: var(--fx-green);
+}
+.btn-outline-primary:hover {
+  background-color: var(--fx-green);
+  border-color: var(--fx-green);
+}
+.btn-secondary { background-color: var(--fx-blue); border-color: var(--fx-blue); }
+.btn-secondary:hover { background-color: var(--fx-blue-dark); border-color: var(--fx-blue-dark); }
+.btn-danger { background-color: var(--fx-red); border-color: var(--fx-red); }
+.btn-danger:hover { background-color: var(--fx-red-dark); border-color: var(--fx-red-dark); }
+
+.badge.bg-primary { background-color: var(--fx-green) !important; }
+.badge.bg-info    { background-color: var(--fx-blue) !important; }
+.badge.bg-danger  { background-color: var(--fx-red) !important; }
+
+a { color: var(--fx-blue); }
+a:hover { color: var(--fx-blue-dark); }
+
+/* ===================== Construtor visual ===================== */
+.builder {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 992px) { .builder { grid-template-columns: 1fr; } }
+
+.builder-panel {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 16px;
+}
+.builder-panel h5 {
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--fx-blue);
+  letter-spacing: 0.4px;
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+
+.col-grid {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fafbfc;
+}
+.col-grid .form-check { margin: 0; padding: 4px 6px 4px 28px; border-radius: 4px; }
+.col-grid .form-check:hover { background: var(--fx-green-soft); }
+
+.filter-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.6fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.filter-row .btn-remove {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fx-red);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+.filter-row .btn-remove:hover { background: rgba(192,57,43,0.08); }
+
+/* ===================== Sprint 5 — JOINs no Builder ===================== */
+
+.join-block {
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
+}
+
+.join-card {
+  background: #fbfcfd;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--fx-primary);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.join-card-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.join-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 999px;
+  background: var(--fx-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.join-card-body { padding-left: 4px; }
+
+.on-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.on-row .form-select-sm { flex: 1; min-width: 130px; max-width: 220px; }
+
+/* Indicador de página visível ao lado da grid (Sprint 5 polish) */
+.pagination-indicator {
+  background: var(--fx-primary-soft);
+  color: var(--fx-primary-dark);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+.pagination-indicator strong { color: var(--fx-primary-dark); font-weight: 700; }
+
+/* Hint de perfis no bloco JOIN (whitelist visual) */
+.join-profiles-hint {
+  padding: 6px 10px;
+  background: #f8fafc;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+}
+
+/* Filtro de busca em colunas (crítico para UX com JOIN) */
+.column-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.column-search { flex: 1; }
+.column-search-count {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Agrupamento por tabela na caixa de colunas */
+.col-grid .col-group {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+.col-grid .col-group-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--fx-blue-dark);
+  font-weight: 700;
+  padding: 6px 4px 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.col-grid .col-group-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 4px;
+}
+
+/* ===================== Spinners / loading ===================== */
+.btn .spinner-border-sm {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-width: 0.18em;
+}
+.btn:disabled { opacity: 0.7; cursor: progress; }
+
+/* ===================== Toast / Alert helper ===================== */
+#toastHolder {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#toastHolder .alert {
+  border-left: 4px solid var(--fx-green);
+  min-width: 280px;
+}
+#toastHolder .alert-danger  { border-left-color: var(--fx-red); }
+#toastHolder .alert-warning { border-left-color: var(--warning); }
+#toastHolder .alert-primary { border-left-color: var(--fx-blue); }
+
+/* ===================== Auditor Fiscal — banners & destaque ===================== */
+
+.source-info-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, var(--fx-primary-soft), #fff);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--fx-primary);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+.source-info-banner .source-icon { font-size: 18px; }
+.source-info-banner .source-text { font-size: 14px; color: var(--text); }
+.source-info-banner .source-tol  { margin-left: auto; }
+
+/* Destaque vermelho na linha de divergência de NCM (compliance crítico) */
+.table tr.ncm-row > td {
+  background-color: #fff3f3;
+  border-left: 3px solid var(--fx-red);
+}
+.table tr.ncm-row:hover > td {
+  background-color: #ffe5e5;
+}
+.table tr.clickable { cursor: pointer; }
+.table tr.clickable:hover > td { background-color: var(--fx-primary-soft); }
+
+/* Sprint 4.C — anomalias ja cientes/snoozed (atenuadas) */
+.table tr.anomaly-acked > td,
+.table tr.anomaly-snoozed > td {
+  opacity: 0.55;
+  font-style: italic;
+}
+.table tr.anomaly-acked:hover > td,
+.table tr.anomaly-snoozed:hover > td {
+  opacity: 0.85;
+}
+
+/* Banner com warning amarelo quando fonte ativa nao esta configurada */
+.source-info-banner.banner-warning {
+  background: linear-gradient(90deg, #fff8e1, #fff);
+  border-left: 4px solid var(--warning);
+}
+
+/* Modal de detalhe — comparacao side-by-side */
+.anomaly-side {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100%;
+}
+.anomaly-side-title {
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  background: var(--fx-primary-soft);
+  color: var(--fx-primary-dark);
+}
+.anomaly-side-xml .anomaly-side-title {
+  background: #e3edf8;
+  color: #0a3868;
+}
+.anomaly-value {
+  padding: 14px 16px;
+  margin: 0;
+  background: #fff;
+  font-family: "Consolas", monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 60px;
+}
+
+/* Modal preview e-mail (iframe grande) */
+.email-preview-modal .modal-dialog { max-width: 880px; }
+.email-preview-modal iframe {
+  width: 100%;
+  height: 70vh;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* ===================== Idle banner ===================== */
+.session-banner {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--warning);
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  font-size: 13px;
+  z-index: 1090;
+}
+
+/* Esconde banner quando não está visível */
+.session-banner[hidden] { display: none; }
+
+/* ===================== Sprint 8 — Skeleton loaders ===================== */
+/* Barra cinza pulsante usada durante carregamento de tabelas. */
+.skeleton-bar {
+  display: inline-block;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(0,0,0,0.06) 0%,
+    rgba(0,0,0,0.12) 50%,
+    rgba(0,0,0,0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  min-width: 40px;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ===================== Sprint 8 — Barra de Meus Modelos ===================== */
+.saved-models-bar {
+  background: linear-gradient(90deg, #fffef0, #fff);
+  border-left: 4px solid var(--fx-primary, #2E8B3D);
+}
+
+/* ===================== Sprint 8 — Dashboard charts ===================== */
+.dashboard-chart-card {
+  background: #fff;
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.dashboard-chart-card h6 {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+  color: #666;
+}
+.dashboard-chart-canvas-wrap {
+  position: relative;
+  height: 220px;
+}
+
+/* ======================================================
+ * Sprint 8 Part 1 — DARK MODE
+ *
+ * Override de variaveis em body.dark-mode. As CSS variables ja existentes
+ * (--bg, --card, --text, --muted, --border) sao reusadas — toda a UI
+ * herda o tema escuro sem precisar tocar em cada componente.
+ *
+ * Estrategia: tons cinza-escuros com verde Fertimaxi preservado nos
+ * acentos (CTA, botoes primarios, fonte ativa).
+ *
+ * Bootstrap 5.3 nativo: tambem aplicamos [data-bs-theme="dark"] em <html>
+ * via theme.js — isso ativa as cores dark para inputs, dropdowns, modais
+ * sem precisar reescrever.
+ * ====================================================== */
+
+body.dark-mode {
+  /* Backgrounds */
+  --bg:        #1a1d1f;
+  --card:      #25292c;
+  --text:      #e6e8ea;
+  --muted:     #8a9099;
+  --border:    #3a3f44;
+
+  /* Verde Fertimaxi mais saturado p/ contraste no fundo escuro */
+  --fx-primary-soft: #1d3a23;
+  --fx-menu:         #2a8a3c;
+  --fx-menu-dark:    #1f6f2e;
+
+  /* Aliases mudam junto */
+  --fx-green-soft: var(--fx-primary-soft);
+  --fx-blue-soft:  var(--fx-primary-soft);
+
+  --brand-bg:     var(--bg);
+  --brand-card:   var(--card);
+  --brand-text:   var(--text);
+  --brand-muted:  var(--muted);
+  --brand-border: var(--border);
+}
+
+/* Ajustes pontuais que NAO sao cobertos pelas variables (cores hardcoded). */
+body.dark-mode .login-shell {
+  background: linear-gradient(135deg, #15211a 0%, #1f2e25 60%, #1a1d1f 100%);
+}
+body.dark-mode .login-shell::before {
+  background:
+    linear-gradient(135deg, rgba(20,40,25,0.85) 0%, rgba(15,30,40,0.85) 100%),
+    url("/static/img/background.png") center/cover no-repeat;
+  opacity: 0.5;
+}
+
+/* Cards e modais */
+body.dark-mode .modal-content,
+body.dark-mode .dropdown-menu,
+body.dark-mode .table-card,
+body.dark-mode .kpi-card,
+body.dark-mode .builder-panel,
+body.dark-mode .dashboard-chart-card,
+body.dark-mode .saved-models-bar {
+  background: var(--card);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* Tables — Bootstrap aplica fundo branco em algumas situacoes */
+body.dark-mode .table,
+body.dark-mode .table > :not(caption) > * > * {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text);
+  color: var(--text);
+}
+body.dark-mode .table-light,
+body.dark-mode .table thead.table-light {
+  --bs-table-bg: #2f3438;
+  --bs-table-color: var(--text);
+}
+body.dark-mode .table-hover > tbody > tr:hover > * {
+  --bs-table-hover-bg: #2f3438;
+  --bs-table-hover-color: var(--text);
+}
+
+/* Inputs / selects fora do Bootstrap-native */
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+  background-color: #1f2326;
+  color: var(--text);
+  border-color: var(--border);
+}
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+  background-color: #1f2326;
+  color: var(--text);
+  border-color: var(--fx-primary);
+  box-shadow: 0 0 0 0.2rem rgba(46,139,61,0.25);
+}
+body.dark-mode .form-control::placeholder { color: #6a7079; }
+body.dark-mode .form-text { color: var(--muted); }
+body.dark-mode .form-check-input {
+  background-color: #1f2326; border-color: var(--border);
+}
+body.dark-mode .form-check-input:checked {
+  background-color: var(--fx-primary); border-color: var(--fx-primary);
+}
+
+/* Codigo / monospace */
+body.dark-mode code { color: #c2c8d0; background: #2a2f33; padding: 1px 4px; border-radius: 3px; }
+body.dark-mode pre  { background: #1f2326; color: var(--text); border-color: var(--border); }
+
+/* Nav tabs/pills */
+body.dark-mode .nav-tabs { border-bottom-color: var(--border); }
+body.dark-mode .nav-tabs .nav-link {
+  color: var(--muted); background: transparent; border-color: transparent;
+}
+body.dark-mode .nav-tabs .nav-link.active {
+  color: var(--text); background: var(--card);
+  border-color: var(--border) var(--border) var(--card);
+}
+body.dark-mode .nav-pills .nav-link.active {
+  background-color: var(--fx-primary);
+}
+
+/* Alerts */
+body.dark-mode .alert-info {
+  background-color: #1d2e3a; color: #c2dceb; border-color: #2e4658;
+}
+body.dark-mode .alert-warning {
+  background-color: #3a2f1a; color: #e9d59a; border-color: #5a472a;
+}
+body.dark-mode .alert-success {
+  background-color: var(--fx-primary-soft); color: #b3e6c4; border-color: #2f6b3c;
+}
+
+/* Toasts (Bootstrap padrao usa fundo branco) */
+body.dark-mode .toast {
+  background: var(--card); color: var(--text); border-color: var(--border);
+}
+
+/* Loader pulse no toggle */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.theme-toggle-btn:hover { background: rgba(255,255,255,0.16); }
+.theme-toggle-btn .theme-icon { font-size: 14px; }
+
+/* ======================================================
+ * Sprint 8 Part 1 — Skeleton loaders estendidos
+ * ====================================================== */
+
+/* Variante "linha de texto" — para titulos/labels */
+.skeleton-text {
+  display: block;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.06) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+body.dark-mode .skeleton-text,
+body.dark-mode .skeleton-bar {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 100%);
+  background-size: 200% 100%;
+}
+
+/* Variante "circulo" — para avatares ou bullets de KPI */
+.skeleton-circle {
+  display: inline-block;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.06) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+body.dark-mode .skeleton-circle {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 100%);
+  background-size: 200% 100%;
+}
+
+/* Variante "card inteiro" — placeholder de KPI/card durante carregamento */
+.skeleton-card {
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  min-height: 90px;
+}
+.skeleton-card .skeleton-text:last-child { margin-bottom: 0; }
+
+/* Hotfix v2.0 — wrapper do toggle de tema no sidebar.
+ * Antes tinha `margin-top: auto` competindo com `.footer-info` (line 208) —
+ * o flex empurrava 2 itens para o fundo e o toggle ficava com posicao
+ * indeterminada. Agora o toggle fica em fluxo natural ABAIXO do nav, e o
+ * `.footer-info` (que ainda tem margin-top: auto) puxa o conjunto inteiro
+ * (toggle + version) para o rodape da sidebar. */
+.theme-toggle-wrap {
+  margin-top: auto;            /* empurra ele e a versao para o rodape */
+  padding: 14px 16px 4px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: block;
+}
+.theme-toggle-wrap .theme-toggle-btn { width: 100%; justify-content: center; }
+
+/* Tira margin-top: auto da version pra evitar dupla competicao do flex
+ * (toggle ja puxa o conjunto pra baixo). */
+.sidebar .theme-toggle-wrap + .footer-info {
+  margin-top: 0;
+}
+
+/* ============================================================
+ * Hotfix v2.0 — Ícone "mostrar senha" sempre visível
+ *
+ * Edge/IE auto-injetam o botão `::-ms-reveal` em input[type=password],
+ * mas alguns resets/Bootstrap o escondem. Forçamos a visibilidade.
+ * Para browsers sem suporte nativo (Chrome/Firefox), o JS injeta um
+ * botão `.pwd-toggle` ao lado do input (ver theme.js / pwd-toggle).
+ * ============================================================ */
+
+/* Edge / IE — esconde o "olho" NATIVO. Usamos um unico botao proprio
+   (.pwd-toggle, injetado por pwd-toggle.js) consistente em todos os browsers.
+   Sem isso, no Edge apareciam DOIS icones (o nativo + o nosso). */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+}
+
+/* Wrapper para o botao manual (Chrome/Firefox/Safari nao tem -ms-reveal) */
+.pwd-wrap {
+  position: relative;
+}
+.pwd-wrap input[type="password"],
+.pwd-wrap input[type="text"].pwd-revealed {
+  padding-right: 38px;
+}
+.pwd-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--muted, #6c757d);
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.15s, color 0.15s;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pwd-toggle svg { width: 18px; height: 18px; display: block; }
+.pwd-toggle:hover { opacity: 1; color: var(--text, #1f2d3d); }
+.pwd-toggle:focus { outline: none; }
+body.dark-mode .pwd-toggle { color: #aab2bd; }
+body.dark-mode .pwd-toggle:hover { color: #fff; }
+
+/* ============================================================
+ *  2026 — Lacunas de dark mode: paineis "soft" + Select2
+ *  Antes havia `background:#fafbfc/#fffbe6` INLINE em modais e o
+ *  Select2 (filtros/construtor) nao tinha override dark — ficavam brancos.
+ * ============================================================ */
+
+/* Painel claro reutilizavel (substitui inline background:#fafbfc). */
+.soft-panel { background: #fafbfc; }
+body.dark-mode .soft-panel { background: #1f2326; border-color: var(--border) !important; }
+
+/* Caixa de aviso amarela (fiscal) — tom suave e legivel no dark. */
+.soft-warn { background: #fffbe6; }
+body.dark-mode .soft-warn { background: #3a3320; border-color: #5c5226 !important; color: var(--text); }
+
+/* Select2 — o app usa o tema "bootstrap-5" (.select2-container--bootstrap-5).
+   Seletores theme-agnosticos (alta especificidade via body.dark-mode) para
+   cobrir tanto bootstrap-5 quanto default. */
+body.dark-mode .select2-container .select2-selection {
+  background-color: #1f2326 !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+body.dark-mode .select2-container--bootstrap-5 .select2-selection,
+body.dark-mode .select2-selection--single,
+body.dark-mode .select2-selection--multiple {
+  background-color: #1f2326;
+  border-color: var(--border);
+  color: var(--text);
+}
+body.dark-mode .select2-selection__rendered,
+body.dark-mode .select2-container--bootstrap-5 .select2-selection__rendered { color: var(--text) !important; }
+body.dark-mode .select2-selection__placeholder { color: #6a7079 !important; }
+body.dark-mode .select2-selection--single .select2-selection__arrow b {
+  border-color: var(--text) transparent transparent transparent;
+}
+body.dark-mode .select2-dropdown {
+  background-color: #1f2326 !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+body.dark-mode .select2-results__option { color: var(--text); background-color: #1f2326; }
+body.dark-mode .select2-results__option--highlighted[aria-selected],
+body.dark-mode .select2-results__option--highlighted,
+body.dark-mode .select2-results__option[aria-selected="true"] {
+  background-color: var(--fx-primary, #2E8B3D) !important;
+  color: #fff !important;
+}
+body.dark-mode .select2-search--dropdown .select2-search__field {
+  background-color: #14171a;
+  border-color: var(--border);
+  color: var(--text);
+}
+body.dark-mode .select2-selection--multiple .select2-selection__choice {
+  background-color: var(--fx-primary, #2E8B3D);
+  border-color: var(--fx-primary, #2E8B3D);
+  color: #fff;
+}
+
+/* ============================================================
+ * Hotfix2 v2.0 — Dark Mode: override de superficies hardcoded
+ *
+ * Estes elementos tinham `background: #fff` literal no CSS antigo
+ * (antes do Sprint 8 Part 1 introduzir variables). Sobrescrevemos
+ * aqui sem mexer nas regras originais (mantém compatibilidade light).
+ * ============================================================ */
+body.dark-mode .main { background: var(--bg); }
+body.dark-mode .topbar {
+  background: var(--card);
+  color: var(--text);
+  border-bottom-color: var(--border);
+}
+body.dark-mode .topbar .page-title { color: var(--text); }
+body.dark-mode .content { background: var(--bg); color: var(--text); }
+
+/* user-pill no topbar tem cor verde-soft fixa — no dark fica feia.
+ * Reusa a paleta dark do fx-primary-soft. */
+body.dark-mode .topbar .user-pill {
+  background: var(--fx-primary-soft);
+  color: #b3e6c4;
+  border-color: rgba(46,139,61,0.4);
+}
+body.dark-mode .topbar-clock {
+  background: var(--fx-primary-soft);
+  color: #b3e6c4;
+  border-color: rgba(46,139,61,0.4);
+}
+
+/* ============================================================
+ * Hotfix2 v2.0 — Toggle Sol/Lua FIXO no rodape, acima da versao
+ *
+ * Antes: margin-top:auto causava conflito com footer-info (ambos
+ * tinham margin-top:auto). Agora o toggle fica IMEDIATAMENTE acima
+ * do footer (sem auto), e o footer (com seu margin-top:auto) puxa
+ * o conjunto inteiro pra baixo de forma determinística.
+ * ============================================================ */
+.theme-toggle-wrap {
+  margin-top: auto;          /* preserva — puxa o conjunto pro fundo */
+  padding: 10px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: block;
+  order: 99;                  /* defensivo se alguem reordenar flex items */
+}
+.sidebar .theme-toggle-wrap + .footer-info {
+  margin-top: 0;              /* zera para nao competir com o auto do toggle */
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ============================================================
+ * Hotfix2 v2.0 — Visao OPERADOR (UI mais limpa)
+ *
+ * Quando body tem .role-operator, ocultamos:
+ *  - rodape da sidebar (versao, build, fuso)
+ *  - textos de ajuda (.form-text) de formularios
+ *  - .text-muted explicativos
+ * O JS aplica .role-operator no <body> em layout.js.
+ *
+ * Admin nao recebe a classe — vê tudo.
+ * ============================================================ */
+body.role-operator .sidebar .footer-info { display: none; }
+body.role-operator .form-text { display: none; }
+body.role-operator .text-muted.small,
+body.role-operator small.text-muted { display: none; }
+/* Mantem .text-muted em badges/labels (não eh ajuda contextual) — só esconde
+ * onde aparece como dica abaixo de inputs. Para nao perder semantica em todo
+ * lugar, escondemos apenas os small.text-muted (padrao Bootstrap form helpers). */
+
+/* ============================================================
+ * Sprint 11 — Choices.js dark mode override
+ * ============================================================ */
+body.dark-mode .choices__inner,
+body.dark-mode .choices__list--dropdown,
+body.dark-mode .choices__list[aria-expanded] {
+  background-color: #1f2326;
+  color: var(--text);
+  border-color: var(--border);
+}
+body.dark-mode .choices__input {
+  background-color: #1f2326;
+  color: var(--text);
+}
+body.dark-mode .choices__list--dropdown .choices__item--selectable.is-highlighted {
+  background-color: var(--fx-primary-soft);
+  color: var(--text);
+}
+body.dark-mode .choices__list--single .choices__item { color: var(--text); }
+body.dark-mode .choices[data-type*="select-one"]::after { border-top-color: var(--text); }
+
+
+/* ============================================================
+ * Sprint 14 — Dark mode no Construtor (cores hardcoded saneadas)
+ *
+ * Antes: `.col-grid`, `.join-card`, `.join-profiles-hint` tinham fundo
+ * `#fafbfc`/`#fbfcfd`/`#f8fafc` hardcoded e cegavam no dark mode.
+ * Tambem o `:hover` do form-check usava var(--fx-green-soft) que ficava
+ * pastel claro no fundo escuro.
+ * ============================================================ */
+body.dark-mode .col-grid {
+  background: #1f2326;
+  border-color: var(--border);
+  color: var(--text);
+}
+body.dark-mode .col-grid .form-check {
+  color: var(--text);
+}
+body.dark-mode .col-grid .form-check:hover {
+  background: #2a3034;
+}
+body.dark-mode .col-grid .col-group-header {
+  color: #9bc2f0;
+  border-bottom-color: var(--border);
+}
+body.dark-mode .column-search {
+  background-color: #1f2326;
+  color: var(--text);
+  border-color: var(--border);
+}
+body.dark-mode .column-search::placeholder { color: #6a7079; }
+
+body.dark-mode .join-card {
+  background: #1f2326;
+  border-color: var(--border);
+  color: var(--text);
+}
+body.dark-mode .join-card .join-card-header,
+body.dark-mode .join-card .join-card-body { color: var(--text); }
+
+body.dark-mode .join-profiles-hint {
+  background: #2a3034;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* `.builder-panel h5` usa cor azul clara (var(--fx-blue)) — em dark mode
+ * fica com baixo contraste no fundo cinza. Reforca para um tom mais claro. */
+body.dark-mode .builder-panel h5 { color: #9bc2f0; }
+
+/* Hint genericas dentro do builder */
+body.dark-mode .builder-panel .form-text,
+body.dark-mode .builder-panel .text-muted { color: var(--muted) !important; }
+
+/* ============================================================
+ * Sprint 14 — Select2 dark mode override
+ * Aplicado ao .select2-container--default
+ * ============================================================ */
+body.dark-mode .select2-container--default .select2-selection--single,
+body.dark-mode .select2-container--default .select2-selection--multiple,
+body.dark-mode .select2-dropdown {
+  background-color: #1f2326;
+  color: var(--text);
+  border-color: var(--border);
+}
+body.dark-mode .select2-container--default .select2-selection--single .select2-selection__rendered,
+body.dark-mode .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+  color: var(--text);
+}
+body.dark-mode .select2-container--default .select2-search--dropdown .select2-search__field {
+  background-color: #2a2f33;
+  color: var(--text);
+  border-color: var(--border);
+}
+body.dark-mode .select2-results__option { color: var(--text); }
+body.dark-mode .select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background-color: var(--fx-primary);
+  color: #fff;
+}
+body.dark-mode .select2-container--default .select2-results__option[aria-selected=true] {
+  background-color: #2a3034;
+  color: var(--text);
+}
+/* Caret/dropdown arrow */
+body.dark-mode .select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-color: var(--text) transparent transparent transparent;
+}

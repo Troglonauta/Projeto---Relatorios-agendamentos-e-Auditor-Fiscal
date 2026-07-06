@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Relatorio de Anomalias Fiscais</title>
+</head>
+<body style="font-family:Segoe UI,Arial,sans-serif;color:#1f2d3d;background:#f4f7f5;padding:20px;margin:0">
+  <table cellpadding="0" cellspacing="0" style="max-width:820px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e3e7ee">
+    <tr>
+      <td style="background:linear-gradient(135deg,#0F4C8C 0%,#2E8B3D 100%);color:#fff;padding:22px 28px">
+        <h1 style="margin:0;font-size:20px;font-weight:700">Auditor Fiscal — Divergencias detectadas</h1>
+        <div style="opacity:.85;font-size:13px;margin-top:4px">Periodo: {{PERIOD}}</div>
+      </td>
+    </tr>
+
+    <!-- ===== SECAO DESTACADA: NCM (compliance crítico) ===== -->
+    {{NCM_SECTION}}
+
+    <tr>
+      <td style="padding:24px 28px">
+        <table cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse;margin-bottom:18px">
+          <tr>
+            <td style="background:#e7f3e9;border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:11px;text-transform:uppercase;color:#226d2e">Docs auditados</div>
+              <div style="font-size:24px;font-weight:700;color:#2E8B3D">{{TOTAL_DOCS}}</div>
+            </td>
+            <td style="background:#fff3cd;border-radius:8px;padding:14px;text-align:center;margin:0 8px">
+              <div style="font-size:11px;text-transform:uppercase;color:#8c6d00">Anomalias</div>
+              <div style="font-size:24px;font-weight:700;color:#d4a017">{{TOTAL_ANOMALIES}}</div>
+            </td>
+            <td style="background:#f8d7da;border-radius:8px;padding:14px;text-align:center">
+              <div style="font-size:11px;text-transform:uppercase;color:#842029">Criticas</div>
+              <div style="font-size:24px;font-weight:700;color:#C0392B">{{CRITICAL}}</div>
+            </td>
+          </tr>
+        </table>
+
+        <h2 style="font-size:14px;color:#0F4C8C;margin:0 0 12px;text-transform:uppercase;letter-spacing:.4px">
+          Divergencias (top 200)
+        </h2>
+
+        <table cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e3e7ee">
+          <thead>
+            <tr style="background:#e3edf8;color:#0a3868">
+              <th align="left">Doc</th>
+              <th align="left">Filial</th>
+              <th align="left">Campo</th>
+              <th align="left">Protheus</th>
+              <th align="left">XML</th>
+              <th align="left">Sev.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ROWS}}
+          </tbody>
+        </table>
+
+        <p style="margin:24px 0 0;color:#6c757d;font-size:12px">
+          Relatorio gerado automaticamente pelo Auditor Fiscal do Protheus Reports em {{GENERATED_AT}}.<br>
+          Para detalhamento por nota, acesse o painel em <strong>Auditoria Fiscal</strong>.
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

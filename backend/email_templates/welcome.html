@@ -1,0 +1,57 @@
+<p style="margin:0 0 16px;font-size:15px">
+  Olá <strong>{{FULL_NAME}}</strong>! 👋
+</p>
+
+<p style="margin:0 0 16px">
+  Seu acesso ao <strong>{{APP_NAME}}</strong> foi criado pelo administrador.
+  Você já pode entrar com as credenciais abaixo — o sistema vai pedir uma nova
+  senha pessoal no primeiro login.
+</p>
+
+<!-- Card com credenciais -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+       style="background:#f4f7f5;border:1px solid #e3e7ee;border-left:4px solid #2E8B3D;
+              border-radius:10px;margin:18px 0;">
+  <tr>
+    <td style="padding:18px 22px">
+      <table role="presentation" cellpadding="6" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td style="font-size:11px;text-transform:uppercase;color:#6c757d;width:130px">Usuário</td>
+          <td><strong style="font-family:'Consolas',monospace;font-size:14px;color:#0F4C8C">{{USERNAME}}</strong></td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;text-transform:uppercase;color:#6c757d">E-mail</td>
+          <td><span style="font-size:13px">{{EMAIL}}</span></td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;text-transform:uppercase;color:#6c757d">Perfil</td>
+          <td><span class="profile-badge" style="background:#0F4C8C;color:#fff;padding:3px 9px;border-radius:999px;font-size:11px">{{ROLE}}</span></td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;text-transform:uppercase;color:#6c757d">Senha inicial</td>
+          <td>
+            <code style="background:#e7f3e9;color:#2E8B3D;padding:5px 10px;border-radius:6px;
+                         font-family:'Consolas',monospace;font-size:14px;font-weight:700;letter-spacing:1px;">
+              {{TEMP_PASSWORD}}
+            </code>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- Bloco de orientacao rapida -->
+<p style="margin:0 0 8px;font-size:13px;color:#1f2d3d">
+  <strong>O que fazer agora:</strong>
+</p>
+<ol style="margin:0 0 16px;padding-left:20px;color:#1f2d3d;font-size:13px;line-height:1.7">
+  <li>Acesse <a href="{{LOGIN_URL}}" style="color:#0F4C8C;font-weight:600;text-decoration:none">{{LOGIN_URL}}</a></li>
+  <li>Entre com seu usuário e a senha inicial acima</li>
+  <li>O sistema vai pedir que você crie uma <strong>senha pessoal</strong></li>
+  <li>Pronto! Você já pode usar o Builder Visual para extrair seus relatórios</li>
+</ol>
+
+<p style="margin:0;font-size:12px;color:#6c757d">
+  Dúvidas? Procure o time de TI ou o administrador da plataforma.
+</p>

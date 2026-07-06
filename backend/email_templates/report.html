@@ -1,0 +1,76 @@
+<p style="margin:0 0 16px;font-size:15px">
+  Olá! O relatório <strong>"{{REPORT_NAME}}"</strong> foi gerado com sucesso. 📊
+</p>
+
+<p style="margin:0 0 16px">
+  Você pode baixá-lo direto neste e-mail ({{FORMAT}}) ou voltar ao
+  <strong>{{APP_NAME}}</strong> para configurar mais agendamentos.
+</p>
+
+<!-- Cards de KPIs do relatorio -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+       style="margin:18px 0">
+  <tr>
+    <td style="width:33%;padding:0 6px 0 0">
+      <table role="presentation" cellpadding="14" cellspacing="0" border="0" width="100%"
+             style="background:#e7f3e9;border-radius:8px;border:1px solid #2E8B3D;">
+        <tr>
+          <td style="text-align:center">
+            <div style="font-size:10px;text-transform:uppercase;color:#226d2e;letter-spacing:.5px">Tabela base</div>
+            <div style="font-size:14px;font-weight:700;color:#2E8B3D;margin-top:4px">{{TABLE}}</div>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td style="width:33%;padding:0 3px">
+      <table role="presentation" cellpadding="14" cellspacing="0" border="0" width="100%"
+             style="background:#fff3cd;border-radius:8px;border:1px solid #d4a017;">
+        <tr>
+          <td style="text-align:center">
+            <div style="font-size:10px;text-transform:uppercase;color:#8c6d00;letter-spacing:.5px">Linhas</div>
+            <div style="font-size:18px;font-weight:700;color:#d4a017;margin-top:4px">{{ROW_COUNT}}</div>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td style="width:33%;padding:0 0 0 6px">
+      <table role="presentation" cellpadding="14" cellspacing="0" border="0" width="100%"
+             style="background:#e3edf8;border-radius:8px;border:1px solid #0F4C8C;">
+        <tr>
+          <td style="text-align:center">
+            <div style="font-size:10px;text-transform:uppercase;color:#0a3868;letter-spacing:.5px">Período</div>
+            <div style="font-size:12px;font-weight:600;color:#0F4C8C;margin-top:4px">{{PERIOD}}</div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- Detalhes adicionais -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"
+       style="background:#fafbfc;border-radius:8px;border:1px solid #e3e7ee;margin:0 0 16px">
+  <tr>
+    <td style="padding:14px 18px">
+      <table role="presentation" cellpadding="4" cellspacing="0" border="0" width="100%" style="font-size:12px">
+        <tr>
+          <td style="color:#6c757d;width:120px">📎 Anexo</td>
+          <td><strong>{{ATTACHMENT_NAME}}</strong></td>
+        </tr>
+        <tr>
+          <td style="color:#6c757d">📐 Cruzamentos</td>
+          <td>{{JOIN_INFO}}</td>
+        </tr>
+        <tr>
+          <td style="color:#6c757d">📅 Gerado em</td>
+          <td>{{GENERATED_AT}}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0;font-size:12px;color:#6c757d">
+  Este relatório foi gerado automaticamente pelo agendamento configurado.
+  Para pausar ou alterar a periodicidade, acesse <strong>Agendamentos</strong> no painel.
+</p>

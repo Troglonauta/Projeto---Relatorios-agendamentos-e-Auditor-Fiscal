@@ -1,0 +1,137 @@
+/* === Setup Wizard — visual white-label clean === */
+
+.setup-body {
+  background: #f6f8fa;     /* branco/cinza clean, sem background image */
+  min-height: 100vh;
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  color: #1f2d3d;
+}
+
+.setup-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.setup-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.setup-header img {
+  height: 56px;
+  margin-bottom: 12px;
+}
+
+.setup-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0F4C8C;
+  margin: 0 0 6px;
+}
+
+.setup-header p {
+  color: #6c757d;
+  font-size: 14px;
+  margin: 0;
+}
+
+.setup-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px 28px 22px;
+  border: 1px solid #e3e7ee;
+  box-shadow: 0 10px 24px rgba(15, 76, 140, 0.06);
+}
+
+.setup-steps {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  border-bottom: 1px solid #e3e7ee;
+  padding-bottom: 14px;
+}
+
+.setup-steps li {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c757d;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f4f7f5;
+}
+
+.setup-steps li.active {
+  background: #2E8B3D;
+  color: #fff;
+}
+
+.setup-steps li.done {
+  background: #e7f3e9;
+  color: #2E8B3D;
+}
+
+.setup-section h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F4C8C;
+  margin: 0 0 16px;
+}
+
+.setup-section .form-control,
+.setup-section .form-select {
+  border-radius: 8px;
+  border-color: #dde3e8;
+}
+
+.setup-section .form-control:focus,
+.setup-section .form-select:focus {
+  border-color: #2E8B3D;
+  box-shadow: 0 0 0 3px rgba(46,139,61,0.15);
+}
+
+.setup-section details summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 12px;
+  background: #f4f7f5;
+  border-radius: 6px;
+}
+
+.setup-section details[open] summary {
+  background: #e7f3e9;
+}
+
+.setup-footer {
+  text-align: center;
+  margin-top: 18px;
+  color: #91aac8;
+}
+
+#alertBox .alert {
+  margin-bottom: 16px;
+}
+
+/* Review box no passo final */
+#reviewBox {
+  background: #f4f7f5;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+}
+#reviewBox dl { margin: 0; }
+#reviewBox dt { font-weight: 600; color: #0F4C8C; }
+#reviewBox dd { margin: 0 0 6px; color: #1f2d3d; }
+
+/* === Override do login e change-password — clean, sem background image === */
+/* Quando esta CSS for incluida nessas paginas (futuro), .login-shell ficara branco. */
+body.clean .login-shell {
+  background: #ffffff !important;
+}
+body.clean .login-shell::before {
+  display: none !important;
+}
