@@ -1,149 +1,126 @@
-# Protheus Reports — Fertimaxi
+# Protheus Reports & Auditor Fiscal — Fertimaxi
 
-**v2.0.0** · Code Freeze · build 2026-05-21
+Plataforma interna da **Fertimaxi** para extrair relatórios do **TOTVS Protheus**,
+agendar envios por e-mail e **auditar notas fiscais** cruzando o documento
+lançado no ERP com o XML importado.
 
-Plataforma comercial **white-label** para extração, agendamento e auditoria
-fiscal de dados do **TOTVS Protheus**, com:
+Principais recursos:
 
-- **Builder Visual** estilo APSDU (sem digitar SQL nem nome de tabela física)
-- **Fila Celery** para relatórios pesados (300k+ linhas) sem travar a UI
-- **Auditor Fiscal** comparando NFe (TOTVS Transmite) × 8 tabelas Protheus, com validador forte de **NCM** (compliance)
-- **Setup Wizard** white-label (cliente configura tudo pela UI, zero `.env`)
-- **Perfis/Módulos** (Logística, Contábil, Controladoria, Financeiro, PCP, Estoque, Administrativo, Comercial) + RBAC granular
-- **Hot-reload** de configuração + restart controlado via UI
-- 32+ códigos de erro mapeados, idle logout, limite de sessões concorrentes
+- **Construtor Visual de Consultas** — monta a consulta sem digitar SQL nem o
+  nome físico da tabela; escolhe módulo, tabela (alias), filial, colunas
+  (humanizadas via dicionário SX3), filtros e relacionamentos (JOIN).
+- **Agendamentos** — envio automático de relatórios por e-mail em periodicidade
+  configurável (diária/semanal/mensal), processado em segundo plano.
+- **Fila assíncrona (Celery)** — relatórios pesados (centenas de milhares de
+  linhas) são gerados em background, com progresso e download, sem travar a tela.
+- **Auditor Fiscal** — compara, campo a campo, o documento lançado no ERP
+  (SF1/SD1) com o XML importado (SDS/SDT): número, série, emissão, CNPJ, valores,
+  CFOP, CST, ICMS por item, descrição do produto, etc. Trabalha por **decêndio**
+  (períodos de 10 dias), guarda o histórico de cada auditoria, permite marcar
+  status manualmente por campo (com trilha de quem alterou) e filtrar por tipo de
+  cruzamento e por conformidade.
+- **Controle de acesso** — papéis (admin/operador), perfis por módulo e
+  permissões granulares por ação (visualizar, exportar, agendar, auditar), além
+  de trilha de auditoria de tudo que acontece.
+- **Segurança** — JWT com limite de sessões simultâneas, logout por inatividade e
+  credenciais sensíveis cifradas (Fernet) no banco.
 
-> Stack: **FastAPI · SQLAlchemy · Pandas · Celery · Redis · APScheduler · Bootstrap 5 · Chart.js**
+> Stack: **FastAPI · SQLAlchemy · Celery · APScheduler · pyodbc · openpyxl ·
+> Bootstrap 5 · DataTables · Chart.js**
 
 ---
 
-## Dois modos de operação
+## Como rodar (desenvolvimento)
 
-### 🧪 Dev local (Windows/Linux)
-**Zero config** — broker Celery cai para SQLite automaticamente quando Redis
-não está disponível.
+Pré-requisitos: Python 3.11+, ODBC Driver 17 for SQL Server (para conectar ao
+Protheus) e as dependências do `requirements.txt`.
 
 ```powershell
-.\.venv\Scripts\Activate.ps1   # Linux: source .venv/bin/activate #Quando ele está ativado, qualquer biblioteca que você instale (como o pyodbc para conectar no Protheus, o FastAPI ou o Celery) fica salva apenas dentro da pasta .venv do projeto, e não no seu Windows inteiro. Isso impede que um projeto quebre o outro.
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1        # Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+copy .env.example .env              # e preencha os valores reais
 python scripts\start.py
 ```
 
-Sobe **Web + Worker no mesmo terminal** com prefixos coloridos e Ctrl+C
-encerra os dois. Acesse `http://localhost:8000/`.
+O `scripts/start.py` sobe **Web + Worker no mesmo terminal** (o broker do Celery
+cai para SQLite automaticamente quando não há Redis). Acesse
+`http://localhost:8000/`.
 
-### 🏢 Produção
-**LXC bare metal no Proxmox** com `systemd` + Nginx + Redis nativo.
-Guia completo passo-a-passo: **[`docs/DEPLOY_LXC.md`](docs/DEPLOY_LXC.md)**.
+Na primeira execução, a aplicação redireciona para o **Setup Wizard**, onde se
+configura banco Protheus, SMTP, identidade visual e o usuário administrador
+inicial — depois disso, tudo é editável pela aba **Administração**.
 
-Footprint medido em idle: ~215 MB de RAM.
+## Produção
 
----
-
-## Documentação por tópico
-
-| Tópico | Arquivo |
-|---|---|
-| 🚀 **Implantação produção (LXC Proxmox)** | [`docs/DEPLOY_LXC.md`](docs/DEPLOY_LXC.md) |
-| 🐞 **Catálogo de erros** (códigos `ERR-XXX-NNN`) | [`docs/ERROR_CATALOG.md`](docs/ERROR_CATALOG.md) |
-| 📜 **Histórico das fases** | [`docs/FASE3_PROGRESS.md`](docs/FASE3_PROGRESS.md), [`docs/PHASE4A_PROGRESS.md`](docs/PHASE4A_PROGRESS.md), [`docs/PHASE4B_BACKEND.md`](docs/PHASE4B_BACKEND.md) |
-| 🎯 **Plano técnico da Fase 4** | [`docs/PHASE4_PLAN.md`](docs/PHASE4_PLAN.md) |
-| 🧪 **QA rounds** | [`docs/QA_ROUND_1_REPORT.md`](docs/QA_ROUND_1_REPORT.md) |
+Servidor Linux com `systemd` (serviços web e worker) + Nginx na porta 80.
+Passo a passo em [`docs/DEPLOY_LXC.md`](docs/DEPLOY_LXC.md).
 
 ---
 
-## Estrutura do código
+## Estrutura
 
 ```
 protheus-reports/
 ├── backend/
-│   ├── main.py                    # FastAPI + lifespan condicional (setup wizard)
-│   ├── config.py                  # Settings via .env + AppSetting shim
-│   ├── database.py / models.py    # SQLite local: users, perfis, jobs, anomalias…
-│   ├── auth.py / deps.py          # JWT com jti + limite de sessões + RBAC
-│   ├── protheus_api.py            # EngineRegistry pool 20+30 (hot-reload)
-│   ├── protheus_aliases.py        # Catálogo de 80+ aliases Protheus
-│   ├── profiles_seed.py           # 8 perfis canônicos + matriz default
-│   ├── reports.py                 # Streaming xlsx (openpyxl write_only) + csv
-│   ├── jobs.py                    # CRUD do model Job
-│   ├── scheduler.py               # APScheduler + fiscal_tick
-│   ├── email_service.py           # SMTP (settings_store)
-│   ├── errors.py                  # AppError + 33 códigos catalogados
-│   ├── version.py                 # VERSION + BUILD_DATE
-│   ├── security/                  # Fernet + AppSetting criptografado
-│   ├── fiscal/                    # Auditor Fiscal (Sprint 4.B)
-│   │   ├── auditor.py             # Batch loaders das 8 tabelas + comparators
-│   │   ├── comparators.py         # Funções puras com tolerância configurável
-│   │   ├── xml_sources/           # TransmiteSource (default), TSS, A1 stub, NFSTOCK
-│   │   └── templates/             # E-mail HTML com seção NCM destacada
-│   ├── queue/                     # Celery app + tasks
-│   ├── cli/                       # rotate_master_key
-│   └── routers/                   # auth, users, perfis, protheus, schedules,
-│                                  # jobs, fiscal, dashboard, admin, audit, setup
+│   ├── main.py                # FastAPI + lifespan (setup wizard, migrações leves)
+│   ├── config.py              # Settings via .env
+│   ├── database.py/models.py  # Banco local (usuários, jobs, anomalias, decisões…)
+│   ├── auth.py / deps.py      # JWT + limite de sessões + RBAC
+│   ├── protheus_api.py        # Pool de conexão ao SQL Server do Protheus
+│   ├── dict_sx3.py            # Humanização de colunas pelo dicionário SX3
+│   ├── reports.py             # Geração de XLSX/CSV (streaming) + humanização
+│   ├── scheduler.py           # APScheduler (agendamentos + auditoria fiscal)
+│   ├── security/              # Fernet + settings cifrados
+│   ├── fiscal/                # Auditor Fiscal
+│   │   ├── rule_engine.py     # Motor de regras (cruzamentos campo a campo)
+│   │   ├── internal_audit.py  # Carga SDS/SDT × SF1/SD1 do Protheus
+│   │   ├── auditor.py         # Orquestração da auditoria + persistência
+│   │   ├── comparators.py     # Comparadores puros (tolerâncias configuráveis)
+│   │   ├── finance_audit.py   # Motor financeiro (SF1 × SE2)
+│   │   └── commercial_audit.py# Motor comercial (SC5 × SE1)
+│   ├── queue/                 # Celery app + tasks (relatórios e auditoria)
+│   └── routers/               # auth, users, profiles, protheus, schedules,
+│                              # jobs, fiscal, dashboard, admin, audit, setup…
 ├── frontend/
-│   ├── pages/                     # login, setup, dashboard, protheus, schedules,
-│   │                              # users, audit, fiscal, profiles, admin
-│   ├── js/                        # ES6 modules
-│   └── css/                       # tema Fertimaxi com paleta dinâmica
-├── scripts/
-│   ├── start.py                   # Dev — sobe web + worker em 1 terminal
-│   ├── supervisor.py              # Dev — watchdog para botão "Reiniciar"
-│   └── seed_admin.py              # Cria admin inicial via CLI
-├── docs/                          # Manuais e progress reports
-├── data/                          # Volume — SQLite + branding (não versionado)
-└── reports_output/                # Volume — arquivos gerados pelo worker
+│   ├── pages/                 # login, setup, dashboard, protheus, schedules,
+│   │                          # users, audit, fiscal, profiles, admin
+│   ├── js/                    # módulos ES6
+│   └── css/                   # tema Fertimaxi
+├── scripts/                   # start.py (dev), seed_admin.py, supervisor.py
+├── docs/                      # manuais e histórico
+├── data/                      # volume local (SQLite, branding) — não versionado
+└── reports_output/            # arquivos gerados pelo worker — não versionado
 ```
-
----
-
-## Como configurar pela primeira vez
-
-1. **Suba o serviço** (`python scripts/start.py` no dev, ou systemd em prod).
-2. Abra `http://<host>/` → será redirecionado para o **Setup Wizard**.
-3. Complete os 6 passos: branding, banco Protheus, SMTP, APIs externas, admin inicial, finalizar.
-4. Login com o admin criado. A partir daqui, **toda configuração é editável** pela
-   aba **Administração > Configurações** (sem mexer no `.env`).
-
----
-
-## Endpoints — referência rápida
-
-| Categoria | Exemplos |
-|---|---|
-| Auth | `POST /api/auth/login`, `POST /api/auth/logout`, `POST /api/auth/change-password` |
-| Setup | `GET/POST /api/setup/*` (só ativo enquanto `setup_complete=false`) |
-| Protheus | `GET /api/protheus/aliases`, `GET /api/protheus/columns?alias=&branch=`, `POST /api/protheus/query` |
-| Jobs (fila) | `POST /api/reports/jobs`, `GET /api/reports/jobs/{id}`, `GET /api/reports/jobs/{id}/download`, `DELETE /api/reports/jobs/{id}` |
-| Auditor Fiscal | `POST /api/fiscal/audit/run`, `GET /api/fiscal/anomalies`, `POST /api/fiscal/config/test-source` |
-| Dashboard | `GET /api/dashboard/today`, `GET /api/dashboard/fiscal-recent`, `GET /api/dashboard/feed` |
-| Perfis | `GET/POST/PUT/DELETE /api/profiles`, `POST /api/profiles/{id}/tables`, `PUT /api/users/{id}/profiles` |
-| Admin | `POST /api/admin/reload-config`, `POST /api/admin/restart`, `GET /api/admin/health/detail`, `GET /api/admin/error-catalog`, `POST /api/admin/config/{branding,db,smtp,apis,fiscal,operation}` |
-| Schedules | `GET/POST/DELETE /api/schedules`, `POST /api/schedules/{id}/run-now` (via Celery) |
-
-Documentação OpenAPI interativa em `/docs` (apenas para admins, naturalmente).
 
 ---
 
 ## Backup obrigatório
 
-Sempre faça backup conjunto dos 3 artefatos:
+Faça backup conjunto de:
 
 ```
-/opt/protheus-reports/.env           ← contém MASTER_KEY
-/opt/protheus-reports/data/app.db    ← settings cifrados + users + jobs
-/opt/protheus-reports/data/branding/ ← logo customizado
+.env            ← contém a MASTER_KEY (chave que decifra as credenciais)
+data/app.db     ← usuários, jobs, anomalias e settings cifrados
+data/branding/  ← identidade visual
 ```
 
-**Perder a `MASTER_KEY` = perder todas as credenciais cifradas** (Protheus DB,
-SMTP, Transmite, A1, NFSTOCK). Para rotacionar com segurança:
+**Perder a `MASTER_KEY` = perder todas as credenciais cifradas.** Para rotacionar:
 
 ```bash
 .venv/bin/python -m backend.cli.rotate_master_key --dry-run
 .venv/bin/python -m backend.cli.rotate_master_key
-systemctl restart protheus-reports-web protheus-reports-worker
 ```
 
 ---
 
+## Segurança / configuração
+
+Nenhum segredo é versionado. Use `.env` (a partir do `.env.example`) para as
+credenciais reais — `.env`, `.env.prod`, chaves e certificados ficam fora do
+controle de versão (ver `.gitignore`).
+
 ## Licença
 
-Privado / interno — Fertimaxi Comércio.
+Uso interno — Fertimaxi Comércio. Todos os direitos reservados. Ver
+[`LICENSE`](LICENSE).
