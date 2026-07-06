@@ -1,4 +1,25 @@
-# Protheus Reports & Auditor Fiscal — Fertimaxi
+<p align="center">
+  <img src="fertimaxi_icon.png" alt="Fertimaxi" width="90">
+</p>
+
+<h1 align="center">Protheus Reports &amp; Auditor Fiscal</h1>
+
+<p align="center">
+  Relatórios do <b>TOTVS Protheus</b>, agendamentos por e-mail e auditoria fiscal —
+  cruzando o documento lançado no ERP com o XML importado.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Celery-37814A?logo=celery&logoColor=white" alt="Celery">
+  <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white" alt="SQLAlchemy">
+  <img src="https://img.shields.io/badge/Bootstrap%205-7952B3?logo=bootstrap&logoColor=white" alt="Bootstrap 5">
+  <img src="https://img.shields.io/badge/TOTVS-Protheus-FF6B00" alt="TOTVS Protheus">
+  <img src="https://img.shields.io/badge/licen%C3%A7a-uso%20interno-lightgrey" alt="Licença">
+</p>
+
+---
 
 Plataforma interna da **Fertimaxi** para extrair relatórios do **TOTVS Protheus**,
 agendar envios por e-mail e **auditar notas fiscais** cruzando o documento
@@ -27,6 +48,22 @@ Principais recursos:
 
 > Stack: **FastAPI · SQLAlchemy · Celery · APScheduler · pyodbc · openpyxl ·
 > Bootstrap 5 · DataTables · Chart.js**
+
+---
+
+## Telas
+
+As capturas de tela ficam em [`docs/screenshots/`](docs/screenshots/). Para
+exibi-las aqui, basta salvar os PNGs nessa pasta com os nomes abaixo e
+descomentar o bloco:
+
+<!-- Descomente após adicionar as imagens em docs/screenshots/
+<p align="center">
+  <img src="docs/screenshots/auditor.png" alt="Auditor Fiscal" width="85%"><br><br>
+  <img src="docs/screenshots/consultas.png" alt="Construtor de Consultas" width="85%"><br><br>
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="85%">
+</p>
+-->
 
 ---
 
