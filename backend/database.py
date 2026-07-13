@@ -32,25 +32,19 @@ engine = create_engine(
 if settings.DATABASE_URL.startswith("sqlite"):
     @event.listens_for(engine, "connect")
     def _sqlite_pragmas(dbapi_con, _record):  # noqa: ANN001
-        # Recipe oficial SQLAlchemy p/ concorrencia: desliga o BEGIN implicito do
-        # pysqlite (nos controlamos a transacao no evento "begin" abaixo). Sem
-        # isso, as transacoes comecam como leitura e "sobem" para escrita,
-        # criando um deadlock que o busy_timeout NAO respeita -> "database is
-        # locked" mesmo com timeout alto (web x worker).
-        dbapi_con.isolation_level = None
+        # WAL: leitores nao bloqueiam o escritor (concorrencia web x worker).
+        # busy_timeout: escritas concorrentes ENFILEIRAM em vez de falhar.
+        # NAO usar BEGIN IMMEDIATE global aqui: como a web usa sessao-por-
+        # requisicao, isso faria ate as LEITURAS segurarem o lock de escrita pela
+        # requisicao inteira, serializando tudo e piorando a contencao sob
+        # auditoria. Os poucos pontos com padrao leitura->escrita (enqueue,
+        # heartbeat) sao tratados na propria rota (commit/rollback + resiliencia).
         cur = dbapi_con.cursor()
         cur.execute("PRAGMA journal_mode=WAL")
         cur.execute("PRAGMA synchronous=NORMAL")
-        # 30s: escritas concorrentes (web x worker) enfileiram em vez de falhar.
         cur.execute("PRAGMA busy_timeout=30000")
         cur.execute("PRAGMA cache_size=-16000")  # ~16 MB de cache de paginas
         cur.close()
-
-    @event.listens_for(engine, "begin")
-    def _sqlite_begin_immediate(conn):  # noqa: ANN001
-        # Adquire o lock de escrita ja no inicio da transacao -> o busy_timeout
-        # passa a valer e as escritas enfileiram de forma justa.
-        conn.exec_driver_sql("BEGIN IMMEDIATE")
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)

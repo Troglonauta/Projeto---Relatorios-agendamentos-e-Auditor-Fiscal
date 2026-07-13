@@ -129,8 +129,6 @@ def enqueue_report(
     try:
         from ..queue.tasks.report_task import generate_report
         async_result = generate_report.apply_async(args=[job.id])
-        job.celery_task_id = async_result.id
-        db.commit()
     except Exception as exc:
         # Se nao conseguiu enfileirar, marca como failed com ERR-JOB-001.
         logger.exception("Falha ao enfileirar job %s", job.id)
@@ -140,8 +138,19 @@ def enqueue_report(
             f"Fila indisponivel: {exc}",
         )
 
-    audit.log(db, action="report.job.enqueue", user=user, ip=get_client_ip(request),
-              detail=f"job={job.id} table={table}")
+    # Task despachada — celery_task_id + trilha sao best-effort (nao viram 500 por
+    # um lock momentaneo do SQLite).
+    try:
+        jobs.set_celery_task_id(job.id, async_result.id)
+    except Exception:
+        logger.warning("Nao foi possivel salvar celery_task_id do job %s", job.id)
+    try:
+        audit.log(db, action="report.job.enqueue", user=user, ip=get_client_ip(request),
+                  detail=f"job={job.id} table={table}")
+    except Exception:
+        try: db.rollback()
+        except Exception: pass
+        logger.warning("Nao foi possivel gravar a trilha do enqueue do job %s", job.id)
     return {"job_id": job.id, "status": "queued"}
 
 

@@ -198,8 +198,6 @@ def run_audit(
     try:
         from ..queue.tasks.fiscal_task import run_fiscal_audit
         result = run_fiscal_audit.apply_async(args=[job.id])
-        job.celery_task_id = result.id
-        db.commit()
     except Exception as exc:
         logger.exception("Falha ao enfileirar fiscal job %s", job.id)
         jobs_mod.mark_failed(job.id, "ERR-JOB-001", f"Fila indisponivel: {exc}")
@@ -208,8 +206,19 @@ def run_audit(
             f"Fila indisponivel: {exc}",
         )
 
-    audit.log(db, action="fiscal.audit.enqueue", user=user, ip=get_client_ip(request),
-              detail=f"job={job.id} period={payload.date_from}-{payload.date_to}")
+    # A task ja foi despachada. Salvar o celery_task_id e a trilha e best-effort
+    # (sessao propria / try): um lock momentaneo do SQLite nao pode virar 500.
+    try:
+        jobs_mod.set_celery_task_id(job.id, result.id)
+    except Exception:
+        logger.warning("Nao foi possivel salvar celery_task_id do job %s", job.id)
+    try:
+        audit.log(db, action="fiscal.audit.enqueue", user=user, ip=get_client_ip(request),
+                  detail=f"job={job.id} period={payload.date_from}-{payload.date_to}")
+    except Exception:
+        try: db.rollback()
+        except Exception: pass
+        logger.warning("Nao foi possivel gravar a trilha do enqueue do job %s", job.id)
     return {"job_id": job.id, "status": "queued"}
 
 

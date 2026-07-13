@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from .. import audit
@@ -184,12 +185,18 @@ def heartbeat(
     except Exception:
         jti = None
     if jti:
-        s = db.query(ActiveSession).filter(
-            ActiveSession.jti == jti, ActiveSession.revoked_at.is_(None)
-        ).first()
-        if s:
-            s.last_seen_at = datetime.utcnow()
-            db.commit()
+        # Best-effort: um lock momentaneo do SQLite nao pode virar 500 numa
+        # batida de keep-alive; a proxima batida corrige o last_seen.
+        try:
+            s = db.query(ActiveSession).filter(
+                ActiveSession.jti == jti, ActiveSession.revoked_at.is_(None)
+            ).first()
+            if s:
+                s.last_seen_at = datetime.utcnow()
+                db.commit()
+        except OperationalError:
+            try: db.rollback()
+            except Exception: pass
     return {"ok": True}
 
 

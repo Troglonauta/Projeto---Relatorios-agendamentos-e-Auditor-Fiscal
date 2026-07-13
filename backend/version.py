@@ -11,9 +11,9 @@ from __future__ import annotations
 #   MINOR — novas funcionalidades retrocompativeis
 #   PATCH — correcoes (bugfix, ajustes UX)
 # Atualize JUNTO com `BUILD_DATE` a cada deploy.
-VERSION    = "2.29.3"     # 3 fixes: (1) snapshot do Status em BRT (era UTC); (2) operador fiscal agora acompanha/cancela a auditoria (jobs GET/DELETE aceitam 'fiscal' via require_any_action) — antes 403 travava; (3) menu Consultas gateado por 'view' + landing manda analista fiscal pro Auditor
+VERSION    = "2.29.4"     # Bugfix 500 ao enfileirar auditoria: REVERTE BEGIN IMMEDIATE (serializava tudo e piorava sob concorrencia) e trata o conflito de snapshot do WAL na origem — create_job faz rollback+retry, celery_task_id/trilha/heartbeat viram best-effort
 BUILD_DATE = "2026-07-13" # ISO YYYY-MM-DD
-PHASE      = "v2.29"      # rotulo exibido na UI ("v2.29 · v2.29.3")
+PHASE      = "v2.29"      # rotulo exibido na UI ("v2.29 · v2.29.4")
 
 # Codename interno do release — opcional, aparece em /api/health
 CODENAME = "internal-audit"

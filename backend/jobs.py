@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import uuid
 from datetime import datetime
 from typing import Any, Optional
 
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from .database import SessionLocal
@@ -32,17 +34,37 @@ def create_job(
     if db is None:
         db = SessionLocal(); own = True
     try:
-        j = Job(
-            id=str(uuid.uuid4()),
-            kind=kind,
-            owner_id=owner_id,
-            payload_json=json.dumps(payload, ensure_ascii=False),
-            status="queued",
-        )
-        db.add(j)
-        db.commit()
-        db.refresh(j)
-        return j
+        # Fecha qualquer transacao de LEITURA aberta na sessao da requisicao (as
+        # checagens de auth leem User/permissoes/sessao). Sem isso, o INSERT
+        # abaixo herda o snapshot antigo do WAL e, se o worker gravou nesse meio,
+        # o SQLite devolve "database is locked" (BUSY_SNAPSHOT) — que o
+        # busy_timeout NAO espera. Comecando limpo, o INSERT so aguarda o lock.
+        try:
+            db.rollback()
+        except Exception:
+            pass
+
+        last_err: Optional[Exception] = None
+        for attempt in range(6):
+            j = Job(
+                id=str(uuid.uuid4()),
+                kind=kind,
+                owner_id=owner_id,
+                payload_json=json.dumps(payload, ensure_ascii=False),
+                status="queued",
+            )
+            db.add(j)
+            try:
+                db.commit()
+                db.refresh(j)
+                return j
+            except OperationalError as exc:
+                last_err = exc
+                db.rollback()
+                if "database is locked" not in str(exc).lower() or attempt == 5:
+                    raise
+                time.sleep(0.4 * (attempt + 1))
+        raise last_err  # pragma: no cover
     finally:
         if own:
             db.close()
@@ -103,6 +125,11 @@ def is_cancel_requested(job_id: str) -> bool:
         return bool(j and j.should_cancel)
     finally:
         db.close()
+
+
+def set_celery_task_id(job_id: str, celery_task_id: str) -> None:
+    """Grava o id da task do Celery (best-effort, sessao propria)."""
+    _patch(job_id, celery_task_id=celery_task_id)
 
 
 def _patch(job_id: str, **fields) -> None:
