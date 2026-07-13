@@ -11,9 +11,9 @@ from __future__ import annotations
 #   MINOR — novas funcionalidades retrocompativeis
 #   PATCH — correcoes (bugfix, ajustes UX)
 # Atualize JUNTO com `BUILD_DATE` a cada deploy.
-VERSION    = "2.29.0"     # Consultas e Agendamentos: TODAS as colunas ja vem marcadas por padrao ao escolher a tabela (loadColumns seleciona tudo; modelo salvo/edicao sobrescreve)
-BUILD_DATE = "2026-06-17" # ISO YYYY-MM-DD
-PHASE      = "v2.29"      # rotulo exibido na UI ("v2.29 · v2.29.0")
+VERSION    = "2.29.2"     # Bugfix DEFINITIVO "database is locked": BEGIN IMMEDIATE (recipe SQLAlchemy) faz o busy_timeout valer de fato (evita deadlock leitura->escrita); + progresso do worker a cada 100 docs (era 10). Auditoria nao aborta mais sob concorrencia
+BUILD_DATE = "2026-07-13" # ISO YYYY-MM-DD
+PHASE      = "v2.29"      # rotulo exibido na UI ("v2.29 · v2.29.2")
 
 # Codename interno do release — opcional, aparece em /api/health
 CODENAME = "internal-audit"

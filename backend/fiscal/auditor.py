@@ -45,9 +45,12 @@ TEMPLATE_PATH = Path(__file__).parent / "templates" / "anomaly_report.html"
 
 def _save_anomalies(
     db: Session, doc_key: str, branch: str, supplier_cnpj: Optional[str],
-    divergences: list[dict], job_id: Optional[str],
+    divergences: list[dict], job_id: Optional[str], commit: bool = True,
 ) -> int:
-    """Grava cada divergencia como linha em fiscal_anomalies. Retorna a contagem."""
+    """Grava cada divergencia como linha em fiscal_anomalies. Retorna a contagem.
+
+    `commit=False` acumula na sessao para o chamador commitar em LOTE (reduz a
+    contencao do lock do SQLite web x worker — ver _run_internal_audit)."""
     n = 0
     for d in divergences:
         anomaly = FiscalAnomaly(
@@ -62,7 +65,7 @@ def _save_anomalies(
         )
         db.add(anomaly)
         n += 1
-    if n:
+    if n and commit:
         db.commit()
     return n
 
@@ -126,11 +129,13 @@ def _doc_key(doc: dict) -> str:
 
 def _save_doc_ok(
     db: Session, doc_key: str, branch: str, supplier_cnpj: Optional[str],
-    job_id: Optional[str],
+    job_id: Optional[str], commit: bool = True,
 ) -> None:
     """Fix #4 — marca um documento auditado SEM divergencia (severity='ok'),
     para o analista poder revisar TODOS os documentos. O toggle "apenas
-    divergencias" filtra essas linhas; a contagem de divergencias as ignora."""
+    divergencias" filtra essas linhas; a contagem de divergencias as ignora.
+
+    `commit=False` acumula para commit em LOTE (ver _run_internal_audit)."""
     db.add(FiscalAnomaly(
         doc_key=doc_key, branch=branch, supplier_cnpj=supplier_cnpj,
         field_compared="__documento__",
@@ -138,7 +143,8 @@ def _save_doc_ok(
         xml_value="sem divergencia",
         severity="ok", job_id=job_id,
     ))
-    db.commit()
+    if commit:
+        db.commit()
 
 
 # ---- E-mail ---------------------------------------------------------------
@@ -456,16 +462,18 @@ def run_audit(
                 # Fix #4 — registra TODO documento auditado. Sem divergencia =>
                 # marca 'ok' (o analista revisa todos; o toggle filtra).
                 if not divs:
-                    _save_doc_ok(db, dk, branch, supplier, job_id)
+                    _save_doc_ok(db, dk, branch, supplier, job_id, commit=False)
                     stats["docs_ok"] = stats.get("docs_ok", 0) + 1
-                    if progress_cb and stats["docs_audited"] % 10 == 0:
+                    if stats["docs_audited"] % 200 == 0:
+                        db.commit()   # lote — reduz contencao do lock SQLite
+                    if progress_cb and stats["docs_audited"] % 100 == 0:
                         progress_cb(stats["docs_audited"], None)
                     continue
 
                 if doc.get("sf1") is None:
                     stats["nota_ausente"] += 1
 
-                saved = _save_anomalies(db, dk, branch, supplier, divs, job_id)
+                saved = _save_anomalies(db, dk, branch, supplier, divs, job_id, commit=False)
                 stats["anomalies"] += saved
                 stats["critical"] += sum(1 for d in divs if d["severity"] == "critical")
                 stats["ncm_divergences"] += sum(
@@ -480,8 +488,12 @@ def run_audit(
                         "xml_value": d["xml_value"],
                     })
 
-                if progress_cb and stats["docs_audited"] % 10 == 0:
+                if stats["docs_audited"] % 200 == 0:
+                    db.commit()   # lote — reduz contencao do lock SQLite
+                if progress_cb and stats["docs_audited"] % 100 == 0:
                     progress_cb(stats["docs_audited"], None)
+        # Lote final — persiste o que sobrou do ultimo bloco (< 200 docs).
+        db.commit()
     finally:
         db.close()
 
