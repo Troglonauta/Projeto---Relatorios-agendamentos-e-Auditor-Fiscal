@@ -80,6 +80,25 @@ def require_action(action: str) -> Callable:
     return _dep
 
 
+def require_any_action(*actions: str) -> Callable:
+    """Libera se o usuário tiver QUALQUER uma das ações informadas.
+
+    Usado onde uma mesma rota serve fluxos distintos — ex.: acompanhar/cancelar
+    um Job pode vir de relatórios ('view'/'schedule'/'export') OU do Auditor
+    Fiscal ('fiscal'). A posse do recurso (owner) é checada na própria rota."""
+    def _dep(user: User = Depends(get_current_user)) -> User:
+        if user.role == Role.ADMIN:
+            return user
+        allowed = {p.action for p in user.action_permissions}
+        if not allowed.intersection(actions):
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                f"Usuário não autorizado (requer uma de: {', '.join(actions)})",
+            )
+        return user
+    return _dep
+
+
 def _aliases_via_profiles(user: User) -> set[str]:
     """Aliases que o usuario acessa via perfis vinculados (Fase 4.A)."""
     allowed: set[str] = set()

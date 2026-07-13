@@ -70,7 +70,7 @@ export function renderLayout({ active, title }) {
     // Fase 4: Dashboard agora e' exclusivo para admin — operador entra direto
     // em "Consultas Protheus" (a sua tela primaria de trabalho).
     { id: "dashboard", href: "dashboard.html", label: "Dashboard", admin: true },
-    { id: "protheus",  href: "protheus.html",  label: "Consultas Protheus" },
+    { id: "protheus",  href: "protheus.html",  label: "Consultas Protheus", action: "view" },
     { id: "schedules", href: "schedules.html", label: "Agendamentos", action: "schedule" },
     { id: "fiscal",    href: "fiscal.html",    label: "Auditor Fiscal", action: "fiscal" },
     { id: "profiles",  href: "profiles.html",  label: "Perfis & Módulos", admin: true },

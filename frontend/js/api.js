@@ -112,7 +112,13 @@ export function requireAuth() {
  *  Usado pelo login e por qualquer redirect generico.
  */
 export function landingPage() {
-  return auth.isAdmin() ? "dashboard.html" : "protheus.html";
+  // Leva o usuário para a 1ª tela que ele PODE acessar (evita cair em Consultas
+  // sem ter a ação 'view' — ex.: analista só do Auditor Fiscal).
+  if (auth.isAdmin()) return "dashboard.html";
+  if (auth.hasAction("view")) return "protheus.html";
+  if (auth.hasAction("fiscal")) return "fiscal.html";
+  if (auth.hasAction("schedule")) return "schedules.html";
+  return "protheus.html";
 }
 
 export async function logout(reason) {

@@ -23,6 +23,7 @@ from ..config import get_settings
 from ..database import get_db
 from ..deps import (
     assert_table_allowed, get_client_ip, get_current_user, require_action,
+    require_any_action,
 )
 from ..models import Job, User
 from ..protheus_aliases import is_known_alias
@@ -161,7 +162,8 @@ def list_jobs(
     return [_job_dict(j) for j in items]
 
 
-@router.get("/{job_id}", dependencies=[Depends(require_action("view"))])
+@router.get("/{job_id}",
+            dependencies=[Depends(require_any_action("view", "export", "schedule", "fiscal"))])
 def get_job_status(job_id: str, db: Session = Depends(get_db),
                    user: User = Depends(get_current_user)):
     j = db.query(Job).filter(Job.id == job_id).first()
@@ -189,7 +191,8 @@ def download_job(job_id: str, db: Session = Depends(get_db),
     return FileResponse(j.file_path, filename=name)
 
 
-@router.delete("/{job_id}", dependencies=[Depends(require_action("schedule"))])
+@router.delete("/{job_id}",
+               dependencies=[Depends(require_any_action("schedule", "export", "fiscal"))])
 def cancel_job(job_id: str, db: Session = Depends(get_db),
                user: User = Depends(get_current_user)):
     j = db.query(Job).filter(Job.id == job_id).first()

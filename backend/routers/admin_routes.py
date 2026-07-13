@@ -26,6 +26,7 @@ from sqlalchemy import create_engine, text
 
 from .. import audit, protheus_api, scheduler as scheduler_mod
 from ..database import SessionLocal
+from ..timeutils import now_brt
 from ..deps import get_client_ip, require_admin
 from ..email_service import send_email_raw
 from ..models import ActiveSession, Job, User
@@ -102,7 +103,7 @@ def reload_config(request: Request, admin=Depends(require_admin)):
             "reloaded": reloaded,
             "errors": errors,
             "requires_restart": sorted(RESTART_REQUIRED_KEYS),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": now_brt().isoformat(),   # BRT (coerente com o relogio da UI)
         }
     finally:
         _reload_lock.release()
@@ -140,7 +141,7 @@ def restart_process(request: Request, admin=Depends(require_admin)):
 @router.get("/health/detail")
 def health_detail(admin=Depends(require_admin)):
     """Health-check completo. Cada componente reportado isoladamente."""
-    out = {"timestamp": datetime.utcnow().isoformat(), "components": {}}
+    out = {"timestamp": now_brt().isoformat(), "components": {}}   # BRT
 
     # 1) Protheus (SELECT 1)
     try:
