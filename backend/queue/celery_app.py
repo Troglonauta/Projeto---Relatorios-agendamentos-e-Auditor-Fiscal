@@ -123,6 +123,24 @@ celery_app.conf.update(
     broker_connection_retry_on_startup=True,
 )
 
+
+# Fork-safety (Celery prefork + SQLite/SQLAlchemy): cada processo FILHO precisa de
+# conexoes PROPRIAS. Se reusar uma conexao herdada do pai, os PRAGMAs por-conexao
+# (busy_timeout=30s, WAL) podem nao valer -> "database is locked" instantaneo em
+# vez de aguardar o lock. engine.dispose() no init de cada filho forca conexoes
+# novas, que disparam o evento `connect` e aplicam os PRAGMAs.
+from celery.signals import worker_process_init as _worker_process_init
+
+
+@_worker_process_init.connect
+def _dispose_db_engine_on_fork(**_):
+    try:
+        from ..database import engine
+        engine.dispose()
+        logger.info("[Celery] engine SQLite descartado no fork do worker (PRAGMAs reaplicados)")
+    except Exception:
+        logger.exception("[Celery] Falha ao descartar o engine no fork do worker")
+
 # Tweaks especificos por transport. O SQLAlchemy transport NAO aceita
 # `polling_interval` em `transport_options` (passa direto para `create_engine`).
 # Por isso deixamos defaults aqui — o polling default e' ~1s, suficiente

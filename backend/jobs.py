@@ -133,12 +133,28 @@ def set_celery_task_id(job_id: str, celery_task_id: str) -> None:
 
 
 def _patch(job_id: str, **fields) -> None:
-    db = SessionLocal()
-    try:
-        db.query(Job).filter(Job.id == job_id).update(fields)
-        db.commit()
-    finally:
-        db.close()
+    """Atualiza campos do Job com retry em caso de "database is locked".
+
+    NUNCA propaga o lock: um UPDATE (ex.: progresso) travar por contencao
+    momentanea do SQLite nao pode derrubar a auditoria/relatorio inteiro. Se
+    esgotar as tentativas, apenas registra e segue (orfaos sao reconciliados no
+    proximo restart do worker)."""
+    for attempt in range(8):
+        db = SessionLocal()
+        try:
+            db.query(Job).filter(Job.id == job_id).update(fields)
+            db.commit()
+            return
+        except OperationalError as exc:
+            try: db.rollback()
+            except Exception: pass
+            if "database is locked" not in str(exc).lower() or attempt == 7:
+                logger.warning("Job %s: nao gravou %s (%s) — seguindo",
+                               job_id, list(fields.keys()), exc.__class__.__name__)
+                return
+            time.sleep(0.3 * (attempt + 1))
+        finally:
+            db.close()
 
 
 # ---- Recuperacao de orfaos ---------------------------------------------------
