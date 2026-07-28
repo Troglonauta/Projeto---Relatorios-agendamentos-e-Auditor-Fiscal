@@ -450,7 +450,18 @@ document.getElementById("page").innerHTML = `
               </div>
             </div>
           </div>
-          <div class="form-text mt-3">A auditoria roda em background — o resultado vem por e-mail e aparece na lista.</div>
+          <!-- v2.30 — e-mail opcional por auditoria manual (default DESMARCADO) -->
+          <div class="form-check form-switch mt-3">
+            <input class="form-check-input" type="checkbox" id="rNotifyEmail">
+            <label class="form-check-label small" for="rNotifyEmail">
+              ✉️ Enviar e-mail com o resumo ao concluir <span class="text-muted">(só esta auditoria)</span>
+            </label>
+          </div>
+          <div class="form-text mt-1">
+            A auditoria roda em background e aparece na lista. O e-mail é enviado
+            apenas se você marcar acima. As auditorias <strong>agendadas</strong>
+            continuam enviando na agenda (Administração › Configurações).
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -880,6 +891,7 @@ $("runForm").addEventListener("submit", async (e) => {
       branches:  selectedBranches,
       chave_filter: chave || null,
       engine: engine,
+      notify_email: $("rNotifyEmail")?.checked || false,   // v2.30
     };
 
     // Sprint 20+21 — motores nao-fiscais nao usam chave NFe nem modelos de documento

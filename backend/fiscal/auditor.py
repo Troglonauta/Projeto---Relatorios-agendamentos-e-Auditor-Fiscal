@@ -334,6 +334,26 @@ def _build_anomalies_xlsx_bytes(anomalies: list[dict], stats: dict) -> bytes:
 
 # ---- Entrypoint -----------------------------------------------------------
 
+def _fiscal_notify_enabled() -> bool:
+    """Master switch do e-mail do Auditor (AppSetting FISCAL_NOTIFY_ENABLED).
+    Default LIGADO — desliga so quando setado explicitamente p/ 0/false/nao/off."""
+    v = settings_store.get_setting("FISCAL_NOTIFY_ENABLED", "1")
+    return str(v).strip().lower() not in ("0", "false", "nao", "não", "no", "off")
+
+
+def _fiscal_should_email(stats: dict, autonomous_mode: bool, notify_email) -> bool:
+    """Decide o envio do e-mail de conclusao:
+      - master desligado           -> NUNCA envia.
+      - auditoria AGENDADA (auto)  -> envia (o e-mail "na agenda").
+      - auditoria MANUAL           -> so se a pessoa pediu (checkbox) E houve
+                                       divergencia (nao spamar auditoria limpa)."""
+    if not _fiscal_notify_enabled():
+        return False
+    if autonomous_mode:
+        return True
+    return bool(notify_email) and stats.get("anomalies", 0) > 0
+
+
 def run_audit(
     *,
     date_from: date,
@@ -345,6 +365,7 @@ def run_audit(
     progress_cb=None,
     cancel_cb=None,
     autonomous_mode: bool = False,
+    notify_email: Optional[bool] = None,
     engine_kind: str = "internal",
 ) -> dict:
     """Roda a auditoria interna e retorna estatisticas.
@@ -378,13 +399,13 @@ def run_audit(
         return _run_finance_audit(
             date_from=date_from, date_to=date_to, branches=branches,
             job_id=job_id, progress_cb=progress_cb, cancel_cb=cancel_cb,
-            autonomous_mode=autonomous_mode,
+            autonomous_mode=autonomous_mode, notify_email=notify_email,
         )
     if engine_kind == "comercial_sc5_se1":
         return _run_commercial_audit(
             date_from=date_from, date_to=date_to, branches=branches,
             job_id=job_id, progress_cb=progress_cb, cancel_cb=cancel_cb,
-            autonomous_mode=autonomous_mode,
+            autonomous_mode=autonomous_mode, notify_email=notify_email,
         )
 
     stats: dict = {
@@ -499,7 +520,7 @@ def run_audit(
 
     # E-mail final — autonomo manda sempre; manual so se houve anomalia.
     # Sprint 15: corpo curto + planilha XLSX em ANEXO (detalhamento completo).
-    should_email = stats["anomalies"] > 0 or autonomous_mode
+    should_email = _fiscal_should_email(stats, autonomous_mode, notify_email)
     if should_email:
         notify = settings_store.get_setting("FISCAL_NOTIFY_EMAIL")
         if notify:
@@ -553,6 +574,7 @@ def run_audit(
 def _run_finance_audit(
     *, date_from: date, date_to: date, branches: list[str],
     job_id: Optional[str], progress_cb, cancel_cb, autonomous_mode: bool,
+    notify_email: Optional[bool] = None,
 ) -> dict:
     """Pipeline do motor financeiro — segue a mesma arquitetura do interno
     mas usa `finance_audit.run_finance_audit_for_branch()`.
@@ -622,7 +644,7 @@ def _run_finance_audit(
         db.close()
 
     # E-mail final (reusa template executivo + anexo XLSX)
-    should_email = stats["anomalies"] > 0 or autonomous_mode
+    should_email = _fiscal_should_email(stats, autonomous_mode, notify_email)
     if should_email:
         notify = settings_store.get_setting("FISCAL_NOTIFY_EMAIL")
         if notify:
@@ -676,6 +698,7 @@ def _run_finance_audit(
 def _run_commercial_audit(
     *, date_from: date, date_to: date, branches: list[str],
     job_id: Optional[str], progress_cb, cancel_cb, autonomous_mode: bool,
+    notify_email: Optional[bool] = None,
 ) -> dict:
     """Pipeline do motor COMERCIAL — espelho de `_run_finance_audit` para
     `SC5 x SE1`. Persiste em FiscalAnomaly com `field_compared` prefixado `com_`.
@@ -747,7 +770,7 @@ def _run_commercial_audit(
         db.close()
 
     # E-mail final (reusa template executivo + anexo XLSX)
-    should_email = stats["anomalies"] > 0 or autonomous_mode
+    should_email = _fiscal_should_email(stats, autonomous_mode, notify_email)
     if should_email:
         notify = settings_store.get_setting("FISCAL_NOTIFY_EMAIL")
         if notify:

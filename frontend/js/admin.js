@@ -161,6 +161,15 @@ document.getElementById("page").innerHTML = `
               chamadas externas. Tolerâncias configuráveis abaixo.
             </div>
             <div class="row g-2">
+              <div class="col-md-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="fNotifyEnabled" checked>
+                  <label class="form-check-label" for="fNotifyEnabled">
+                    ✉️ Enviar e-mails do Auditor Fiscal
+                    <small class="text-muted">— desligue para não receber nenhum e-mail (manual ou agendado)</small>
+                  </label>
+                </div>
+              </div>
               <div class="col-md-12"><label class="form-label">E-mail para notificações (vírgula)</label>
                 <input id="fNotify" class="form-control" placeholder="fiscal@fertimaxi.com.br"></div>
               <div class="col-md-12"><label class="form-label">Filiais para auditoria automática (vírgula)</label>
@@ -460,6 +469,7 @@ async function loadConfig() {
     $("sFrom").value        = c.smtp.sender;
     $("sTls").value         = c.smtp.use_tls ? "true" : "false";
     $("fNotify").value      = c.fiscal.notify_email || "";
+    if ($("fNotifyEnabled")) $("fNotifyEnabled").checked = (c.fiscal.notify_enabled !== false);
     $("fAutoBranches").value= c.fiscal.auto_branches || "";
     // Sprint 8 Part 3 — Webhook (URL eh secret, backend so devolve preview/flag)
     const hint = $("fWebhookHint");
@@ -588,6 +598,7 @@ $("btnSaveFiscal").addEventListener("click", async () => {
     try {
       await api("/api/admin/config/fiscal", { method: "POST", body: {
         FISCAL_NOTIFY_EMAIL: $("fNotify").value,
+        FISCAL_NOTIFY_ENABLED: $("fNotifyEnabled") ? $("fNotifyEnabled").checked : true,
         FISCAL_AUTO_BRANCHES: $("fAutoBranches").value,
       }});
       toast("Opções do Auditor salvas", "success");

@@ -56,6 +56,7 @@ def run_fiscal_audit(self, job_id: str) -> dict:
         if doc_models:
             doc_models = set(doc_models)
         autonomous_mode = bool(payload.get("autonomous_mode"))
+        notify_email = bool(payload.get("notify_email"))   # v2.30 — e-mail on-demand
         # Sprint 20 — motor selecionado (default: internal)
         engine_kind = (payload.get("engine") or "internal").strip()
 
@@ -69,7 +70,7 @@ def run_fiscal_audit(self, job_id: str) -> dict:
             date_from=date_from, date_to=date_to, branches=branches,
             chave_filter=chave_filter, doc_models=doc_models,
             job_id=job_id, progress_cb=_progress, cancel_cb=_cancel,
-            autonomous_mode=autonomous_mode,
+            autonomous_mode=autonomous_mode, notify_email=notify_email,
             engine_kind=engine_kind,
         )
 

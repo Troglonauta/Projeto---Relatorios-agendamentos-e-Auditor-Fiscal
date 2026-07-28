@@ -277,6 +277,10 @@ def get_config(admin=Depends(require_admin)):
         "fiscal": {
             # Sprint 12: motor interno (SDS/SDT vs SF1/SD1). Sem fonte externa.
             "notify_email":         _g("FISCAL_NOTIFY_EMAIL"),
+            # v2.30 — master switch dos e-mails do Auditor + agenda das auditorias
+            # autonomas (quando o e-mail chega "na agenda").
+            "notify_enabled":       str(_g("FISCAL_NOTIFY_ENABLED", "1")).lower() not in ("0","false","nao","off"),
+            "auto_schedule":        _g("FISCAL_AUTO_SCHEDULE", "weekdays-6h"),
             "auto_branches":        _g("FISCAL_AUTO_BRANCHES"),
             "tolerance_valor_rs":   _g("FISCAL_TOLERANCE_VALOR_RS", "0.05"),
             "tolerance_icms_rs":    _g("FISCAL_TOLERANCE_ICMS_RS", "0.02"),
@@ -494,6 +498,7 @@ def post_fiscal_options(payload: dict, request: Request, admin=Depends(require_a
     """
     allowed = {
         "FISCAL_NOTIFY_EMAIL",
+        "FISCAL_NOTIFY_ENABLED",   # v2.30 — master switch dos e-mails do Auditor
         "FISCAL_AUTO_BRANCHES",
         # Tolerancias (R$ e quantidade)
         "FISCAL_TOLERANCE_VALOR_RS",
@@ -504,6 +509,9 @@ def post_fiscal_options(payload: dict, request: Request, admin=Depends(require_a
     saved = []
     for k, v in payload.items():
         if k in allowed and v is not None:
+            # Normaliza booleano do master switch para "1"/"0"
+            if k == "FISCAL_NOTIFY_ENABLED":
+                v = "1" if (v is True or str(v).lower() in ("1", "true", "yes", "sim", "on")) else "0"
             settings_store.set_setting(k, v, scope="fiscal", updated_by_id=admin.id)
             saved.append(k)
     db = SessionLocal()

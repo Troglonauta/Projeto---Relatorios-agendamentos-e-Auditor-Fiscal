@@ -11,9 +11,9 @@ from __future__ import annotations
 #   MINOR — novas funcionalidades retrocompativeis
 #   PATCH — correcoes (bugfix, ajustes UX)
 # Atualize JUNTO com `BUILD_DATE` a cada deploy.
-VERSION    = "2.29.5"     # Auditoria nao morre mais por lock de UPDATE de progresso: _patch faz retry e ENGOLE lock (nunca derruba o job). Fork-safety Celery: worker_process_init -> engine.dispose() garante PRAGMAs (busy_timeout=30s) nas conexoes forkadas (era instantaneo o "database is locked" no worker)
-BUILD_DATE = "2026-07-13" # ISO YYYY-MM-DD
-PHASE      = "v2.29"      # rotulo exibido na UI ("v2.29 · v2.29.5")
+VERSION    = "2.30.0"     # Controle do e-mail do Auditor: auditoria MANUAL so envia e-mail se marcar o checkbox (default OFF, para de spamar); master switch FISCAL_NOTIFY_ENABLED no Admin; auditorias AGENDADAS seguem enviando na agenda (FISCAL_AUTO_SCHEDULE)
+BUILD_DATE = "2026-07-15" # ISO YYYY-MM-DD
+PHASE      = "v2.30"      # rotulo exibido na UI ("v2.30 · v2.30.0")
 
 # Codename interno do release — opcional, aparece em /api/health
 CODENAME = "internal-audit"

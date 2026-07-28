@@ -136,6 +136,10 @@ class FiscalAuditRequest(BaseModel):
     #   "internal"        (default) — SDS/SDT vs SF1/SD1 (motor fiscal padrao)
     #   "financeiro_se2"            — SF1 vs SE2 (Contas a Pagar)
     engine: Optional[str] = "internal"
+    # v2.30 — enviar e-mail com o resumo ao concluir ESTA auditoria manual.
+    # Default False: nao spamar a cada auditoria rodada na tela. As auditorias
+    # AGENDADAS (autonomas) seguem enviando na agenda configurada.
+    notify_email: bool = False
 
 
 # ---- Run audit ------------------------------------------------------------
@@ -192,6 +196,7 @@ def run_audit(
         "chave_filter": chv,
         "doc_models": doc_models,
         "engine": engine_kind,
+        "notify_email": bool(payload.notify_email),   # v2.30
     }
     job = jobs_mod.create_job("fiscal_audit", job_payload, owner_id=user.id, db=db)
 
